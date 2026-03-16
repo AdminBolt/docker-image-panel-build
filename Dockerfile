@@ -10,10 +10,21 @@ RUN dnf update -y && \
     dnf install php83-php-cli php83-php-common php83-php-json php83-php-mbstring php83-php-mysqlnd php83-php-opcache php83-php-pdo php83-php-xml php83-php-pecl-zip php83-php-pecl-ssh2 -y && \
     dnf install -y wget git zip unzip curl npm python3 --allowerasing && \
     dnf module install nodejs:20 -y && \
-    npm install -g npm@latest
+    npm install -g npm@latest && \
+    npm config delete python && \
+    mkdir -p /tmp/.npm && chmod 777 /tmp/.npm
+ENV NPM_CONFIG_CACHE=/tmp/.npm
 
-# Composer (global)
-RUN curl -sS https://getcomposer.org/installer | php83 -- --install-dir=/usr/local/bin --filename=composer
+# Composer (global) - official process
+RUN cd /tmp && \
+    php83 -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+    php83 -r "if (hash_file('sha384', 'composer-setup.php') === 'c8b085408188070d5f52bcfe4ecfbee5f727afa458b2573b8eaaf77b3419b0bf2768dc67c86944da1544f06fa544fd47') { echo 'Installer verified'.PHP_EOL; } else { echo 'Installer corrupt'.PHP_EOL; unlink('composer-setup.php'); exit(1); }" && \
+    php83 composer-setup.php && \
+    mv composer.phar /usr/local/bin/composer && \
+    php83 -r "unlink('composer-setup.php');" && \
+    chmod +x /usr/local/bin/composer && \
+    mkdir -p /tmp/.composer && chmod 777 /tmp/.composer
+ENV COMPOSER_HOME=/tmp/.composer
 
 # Packages for RPM Build + encrypt (zip/unzip/curl)
 RUN dnf install rpm-build tar gzip rsync zip unzip curl -y && \
