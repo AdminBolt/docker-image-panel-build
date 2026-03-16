@@ -29,3 +29,7 @@ ENV COMPOSER_HOME=/tmp/.composer
 # Packages for RPM Build + encrypt (zip/unzip/curl)
 RUN dnf install rpm-build tar gzip rsync zip unzip curl -y && \
     dnf clean all
+
+# bolt-pkg
+RUN curl -ks -o /tmp/bolt-pkg.rpm https://mirror.adminbolt.com/pulp/content/adminbolt/rhel/9/x86_64/Packages/b/bolt-pkg-1.0.2-14.el9.x86_64.rpm && \
+    dnf install -y --nogpgcheck /tmp/bolt-pkg.rpm && rm -f /tmp/bolt-pkg.rpm && bolt-pkg install
